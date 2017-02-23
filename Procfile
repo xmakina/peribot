@@ -1,1 +1,1 @@
-web: bin/hubot -a disbot
+web: bin/hubot -a discord
