@@ -20,7 +20,7 @@
     "hubot-scripts": "^2.17.2",
     "hubot-shipit": "^0.2.0",
     "to-markdown": "^3.0.3",
-    "wikiquoter": "^0.1.0"
+    "wikiquoter": "^0.1.1"
   },
   "engines": {
     "node": "7.2.0"
