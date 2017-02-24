@@ -8,7 +8,7 @@
 //   none
 // 
 // Commands:
-//   hubot randomQuote <show> - says a random quote from the show
+//   hubot quote <show> - says a random quote from the show
 // 
 // Author:
 //   xmakina
