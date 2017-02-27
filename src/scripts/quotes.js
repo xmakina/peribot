@@ -32,13 +32,13 @@ module.exports = function(robot){
 	function saySomething(message){
 		return function(content){
 			formatToMarkdown(content, function(result){
-				message.send(result)
+				message.channel.send(result)
 			})
 		}
 	}
 	
 	function logError(err){
-		console.error(err)
+		robot.logger.error(err)
 	}
 	
 	robot.respond(/quote (.*)/i, function(msg){
