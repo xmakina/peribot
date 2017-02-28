@@ -17,8 +17,16 @@ module.exports = function (robot) {
   }, {expect: 'set point reaction <emoji>', description: 'sets the point scoring reaction (admins only)'})
 
   robot.respond(/points (.*)/i, function (msg) {
-    var points = robot.brain.get('points|' + msg.match[1])
-    msg.reply(msg.match[1] + ' has ' + points + ' point' + (points > 1 ? 's' : ''))
+    var userPoints = robot.brain.get('userPoints')
+    if(userPoints === null){
+      userPoints = {}
+    }
+    var justId = msg.match[1].replace('<@', '').replace('>', '')
+    var points = userPoints[justId]
+    if (points === undefined) {
+      points = 0
+    }
+    msg.reply(msg.match[1] + ' has ' + points + ' point' + (points != 1 ? 's' : ''))
   }, {expect: 'points <mention>', description: 'reports how many points <mention> has'})
 
   robot.respond(/what is the point reaction/i, function (msg) {
