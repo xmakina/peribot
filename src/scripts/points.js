@@ -25,6 +25,10 @@ module.exports = function (robot) {
     msg.reply(msg.match[1] + ' has ' + points + ' point' + (points > 1 ? 's' : ''))
   })
 
+  robot.respond(/what is the point reaction/i, function (msg) {
+    msg.reply('React with ' + robot.brain.get(brainKey) + ' to award that person with a point')
+  })
+
   robot.on('messageReactionAdd', function (reaction) {
     if (reaction.emoji.name === robot.brain.get(brainKey) === false) {
       return
@@ -39,6 +43,10 @@ module.exports = function (robot) {
     var doneSoFar = 0
     reaction.users.array().forEach(function (awarder, index, list) {
       doneSoFar++
+      if (reaction.message.author.id === awarder.id) {
+        return
+      }
+
       if (awards.includes(awarder.id)) {
         return
       }
@@ -48,7 +56,7 @@ module.exports = function (robot) {
       var points = robot.brain.get(pointBrainKey)
       points++
       robot.brain.set(pointBrainKey, points)
-
+      console.log('point awarded', {pointBrainKey, points})
       if (doneSoFar === list.length) {
         robot.brain.set(messageBrainKey, awards)
       }
