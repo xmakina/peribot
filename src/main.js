@@ -4,12 +4,15 @@ const Brain = require('./essentials/brain.js')
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.username}!`)
+  client.helpResponse = '\n' + client.help.map(function (helpBlock) {
+    return client.user.toString() + ' ' + helpBlock.expect + ' : ' + helpBlock.description
+  }).join('\n')
 })
 
 client.brain = new Brain(client)
 client.logger = console
-
-client.respond = function (regex, callback) {
+client.help = []
+client.respond = function (regex, callback, help) {
   client.on('message', function (msg) {
     if (msg.content.startsWith(client.user.toString())) {
       var match = msg.content.match(regex)
@@ -23,7 +26,14 @@ client.respond = function (regex, callback) {
       }
     }
   })
+  if (help) {
+    client.help.push(help)
+  }
 }
+
+client.respond(/help/i, function (msg) {
+  msg.reply(client.helpResponse)
+}, {expect: 'help', description: 'lists the available commands'})
 
 var normalizedPath = require('path').join(__dirname, 'scripts')
 

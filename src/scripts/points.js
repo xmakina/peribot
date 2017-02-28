@@ -1,10 +1,6 @@
 module.exports = function (robot) {
   const brainKey = 'pointReaction'
 
-  function getPointDiscriminator (user) {
-    return 'points|' + user.toString()
-  }
-
   function getMessageDiscriminator (message) {
     return 'reactMessage|' + message.id
   }
@@ -18,16 +14,27 @@ module.exports = function (robot) {
     var react = msg.match[1]
     robot.brain.set(brainKey, msg.match[1])
     msg.reply('Setting ' + msg.match[1] + ' as point')
-  })
+  }, {expect: 'set point reaction <emoji>', description: 'sets the point scoring reaction (admins only)'})
 
   robot.respond(/points (.*)/i, function (msg) {
     var points = robot.brain.get('points|' + msg.match[1])
     msg.reply(msg.match[1] + ' has ' + points + ' point' + (points > 1 ? 's' : ''))
-  })
+  }, {expect: 'points <mention>', description: 'reports how many points <mention> has'})
 
   robot.respond(/what is the point reaction/i, function (msg) {
     msg.reply('React with ' + robot.brain.get(brainKey) + ' to award that person with a point')
-  })
+  }, {expect: 'what is the point reaction', description: 'tells you the current point scoring reaction'})
+
+  robot.respond(/list point/i, function (msg) {
+    var result = ''
+    var userPoints = robot.brain.get('userPoints')
+
+    for (var key in userPoints) {
+      result += '<@' + key + '> : ' + userPoints[key]
+    }
+
+    msg.author.dmChannel.send(result)
+  }, {expect: 'list points', description: 'lists all scores (reply via DM)'})
 
   robot.on('messageReactionAdd', function (reaction) {
     if (reaction.emoji.name === robot.brain.get(brainKey) === false) {
@@ -41,9 +48,10 @@ module.exports = function (robot) {
     }
 
     var doneSoFar = 0
+    var awarded = reaction.message.author.id
     reaction.users.array().forEach(function (awarder, index, list) {
       doneSoFar++
-      if (reaction.message.author.id === awarder.id) {
+      if (awarded === awarder.id) {
         return
       }
 
@@ -52,11 +60,20 @@ module.exports = function (robot) {
       }
 
       awards.push(awarder.id)
-      var pointBrainKey = getPointDiscriminator(reaction.message.author)
-      var points = robot.brain.get(pointBrainKey)
-      points++
-      robot.brain.set(pointBrainKey, points)
-      console.log('point awarded', {pointBrainKey, points})
+      var userPoints = robot.brain.get('userPoints')
+
+      if (userPoints === null) {
+        userPoints = {}
+      }
+
+      if (userPoints[awarded]) {
+        userPoints[awarded]++
+      } else {
+        userPoints[awarded] = 1
+      }
+
+      robot.brain.set('userPoints', userPoints)
+      console.log('point awarded', userPoints)
       if (doneSoFar === list.length) {
         robot.brain.set(messageBrainKey, awards)
       }
