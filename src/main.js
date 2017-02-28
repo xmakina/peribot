@@ -31,4 +31,4 @@ require('fs').readdirSync(normalizedPath).forEach(function (file) {
   require('./scripts/' + file)(client)
 })
 
-client.login(process.env.HUBOT_DISCORD_TOKEN)
+client.login(process.env.HUBOT_DISCORD_TOKEN).catch(console.error)

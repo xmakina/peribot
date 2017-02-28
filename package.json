@@ -5,13 +5,27 @@
   "author": "Alex Addams <github@xmakina.co.uk>",
   "description": "keeping the crystal clods under control",
   "dependencies": {
+    "discord.js": "^11.0.0",
+    "redis": "^2.6.5",
     "to-markdown": "^3.0.3",
     "wikiquoter": "^0.1.2"
   },
-  "scripts": {
-    "start": "node ./src/main.js"
-  },
   "engines": {
-    "node": "7.2.0"
-  }
+    "node": "7.6.0"
+  },
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+	"start": "node ./src/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmakina/peribot.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xmakina/peribot/issues"
+  },
+  "homepage": "https://github.com/xmakina/peribot#readme"
 }
