@@ -1,6 +1,4 @@
 module.exports = function (robot) {
-  const brainKey = 'pointReaction'
-
   robot.respond(/set point reaction (.*)/i, function (msg) {
     var isAdmin = msg.member.roles.exists('name', 'Admin')
     if (isAdmin === false) {
@@ -8,7 +6,7 @@ module.exports = function (robot) {
     }
 
     var react = msg.match[1]
-    robot.brain.set(brainKey, msg.match[1])
+    robot.brain.set('pointReaction', msg.match[1])
     msg.reply('Setting ' + msg.match[1] + ' as point')
   }, {expect: 'set point reaction <emoji>', description: 'sets the point scoring reaction (admins only)'})
 
@@ -26,7 +24,7 @@ module.exports = function (robot) {
   }, {expect: 'points <mention>', description: 'reports how many points <mention> has'})
 
   robot.respond(/what is the point reaction/i, function (msg) {
-    msg.reply('React with ' + robot.brain.get(brainKey) + ' to award that person with a point')
+    msg.reply('React with ' + robot.brain.get('pointReaction') + ' to award that person with a point')
   }, {expect: 'what is the point reaction', description: 'tells you the current point scoring reaction'})
 
   robot.respond(/list point/i, function (msg) {
@@ -41,7 +39,7 @@ module.exports = function (robot) {
   }, {expect: 'list points', description: 'lists all scores (reply via DM)'})
 
   robot.on('messageReactionAdd', function (reaction) {
-    if (reaction.emoji.name === robot.brain.get(brainKey) === false) {
+    if (reaction.emoji.name === robot.brain.get('pointReaction') === false) {
       return
     }
 
