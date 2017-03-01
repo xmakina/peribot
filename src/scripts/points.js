@@ -1,10 +1,6 @@
 module.exports = function (robot) {
   const brainKey = 'pointReaction'
 
-  function getMessageDiscriminator (message) {
-    return 'reactMessage|' + message.id
-  }
-
   robot.respond(/set point reaction (.*)/i, function (msg) {
     var isAdmin = msg.member.roles.exists('name', 'Admin')
     if (isAdmin === false) {
@@ -18,7 +14,7 @@ module.exports = function (robot) {
 
   robot.respond(/points (.*)/i, function (msg) {
     var userPoints = robot.brain.get('userPoints')
-    if(userPoints === null){
+    if (userPoints === null) {
       userPoints = {}
     }
     var justId = msg.match[1].replace('<@', '').replace('>', '')
@@ -49,9 +45,13 @@ module.exports = function (robot) {
       return
     }
 
-    var messageBrainKey = getMessageDiscriminator(reaction.message)
-    var awards = robot.brain.get(messageBrainKey)
-    if (awards === null) {
+    var allAwardedMessages = robot.brain.get('pointMessages')
+    if (allAwardedMessages === null) {
+      allAwardedMessages = {}
+    }
+
+    var awards = allAwardedMessages[reaction.message.id]
+    if (awards === undefined) {
       awards = []
     }
 
@@ -83,7 +83,8 @@ module.exports = function (robot) {
       robot.brain.set('userPoints', userPoints)
       console.log('point awarded', userPoints)
       if (doneSoFar === list.length) {
-        robot.brain.set(messageBrainKey, awards)
+        allAwardedMessages[reaction.message.id] = awards
+        robot.brain.set('pointMessages', allAwardedMessages)
       }
     })
   })
