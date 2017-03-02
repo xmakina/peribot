@@ -6,17 +6,21 @@
   "description": "keeping the crystal clods under control",
   "dependencies": {
     "discord.js": "^11.0.0",
-    "redis": "^2.6.5",
+    "discord.js-commando": "^0.9.0",
+    "erlpack": "github:hammerandchisel/erlpack",
+    "sqlite": "^2.3.0",
     "to-markdown": "^3.0.3",
     "wikiquoter": "^0.1.2"
+  },
+  "devDependencies": {
+    "standard": "^9.0.0"
   },
   "engines": {
     "node": "7.6.0"
   },
-  "main": "index.js",
-  "devDependencies": {},
+  "main": "./src/peribot.js",
   "scripts": {
-	"start": "node ./src/main.js",
+    "start": "node ./src/peribot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
