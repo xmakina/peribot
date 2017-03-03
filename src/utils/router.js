@@ -24,7 +24,7 @@ module.exports = function (robot) {
   }
   app.use(express.query())
   app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded())
+  app.use(bodyParser.urlencoded({ extended: true }))
   app.use(multipart({
     maxFilesSize: 100 * 1024 * 1024
   }))
