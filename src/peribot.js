@@ -10,6 +10,10 @@ const client = new commando.Client({
   commandPrefix: process.env.COMMANDO_CMD_PREFIX
 })
 
+client.logger = console
+require('./utils/router.js')(client)
+require('./keep-alive/keep-alive.js')(client)
+
 client
   .on('error', console.error)
   .on('warn', console.warn)
