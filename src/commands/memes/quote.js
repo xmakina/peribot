@@ -18,7 +18,7 @@ module.exports = class GetQuoteCommand extends commando.Command {
           label: 'show',
           prompt: 'What show do you want a quote from?',
           type: 'string',
-          infinite: true
+          infinite: false
         }
       ]
     })
@@ -28,7 +28,6 @@ module.exports = class GetQuoteCommand extends commando.Command {
     var Wikiquoter = require('wikiquoter')
     var formatToMarkdown = require('../../utils/formatToMarkdown.js')
     var wq = new Wikiquoter()
-    var showName = args.showName.join(' ')
-    wq.randomQuote(showName, 1000, (quote) => { msg.reply(formatToMarkdown(quote)) }, console.error)
+    wq.randomQuote(args.showName, 1000, (quote) => { msg.reply(formatToMarkdown(quote)) }, console.error)
   }
 }
