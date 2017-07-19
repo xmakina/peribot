@@ -64,6 +64,7 @@ client.setProvider(
 
 client.registry
   .registerGroup('memes', 'Memes')
+  .registerGroup('games', 'Games')
   .registerDefaults()
   .registerCommandsIn(path.join(__dirname, 'commands'))
 
