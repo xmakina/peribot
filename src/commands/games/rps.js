@@ -11,13 +11,12 @@ module.exports = class GetQuoteCommand extends commando.Command {
       description: 'Plays Rock/Paper/Scissors',
       details: 'A great way to pick a winner quickly',
       examples: ['rps paper'],
-
       args: [
         {
-          key: 'choice',
-          label: 'choice',
-          prompt: 'What action do you use?',
-          type: 'string',
+          key: 'opponent',
+          label: 'opponent',
+          prompt: 'Who will you challenge?',
+          type: 'user',
           infinite: false
         }
       ]
@@ -25,7 +24,7 @@ module.exports = class GetQuoteCommand extends commando.Command {
   }
 
   async run (msg, args) {
-    const responses = await msg.author.awaitMessages(msg2 =>
+    const responses = await msg.author.dmChannel.awaitMessages(msg2 =>
       msg2.author.id === msg.author.id &&
       (msg2.content === 'rock' || msg2.content === 'paper' || msg2.content === 'scissors')
     , {maxMatches: 1, time: 20e3})
