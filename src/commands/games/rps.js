@@ -32,7 +32,7 @@
 
       let responses = await getResponse(msg,
         'Rock, Paper or Scissors?',
-        10000,
+        20000,
         [msg.author, args.opponent],
         true)
 
