@@ -24,23 +24,22 @@ module.exports = class GetQuoteCommand extends commando.Command {
   }
 
   async run (msg, args) {
-    const responses = await msg.author.dmChannel.awaitMessages(msg2 =>
-      msg2.author.id === msg.author.id &&
-      (msg2.content === 'rock' || msg2.content === 'paper' || msg2.content === 'scissors')
-    , {maxMatches: 1, time: 20e3})
+    await msg.author.createDM().then(async function (dmChannel) {
+      dmChannel.send('Choose your weapon!')
+      const responses = await dmChannel.awaitMessages(msg2 => msg2.author.id === msg.author.id, {maxMatches: 1, time: 20e3})
+      if (responses.size === 0) {
+        msg.reply('nope')
+      }
 
-    if (responses.size === 0) {
-      msg.reply('nope')
-    }
+      console.log('responses', responses)
 
-    console.log('responses', responses)
+      var RockPaperScissors = require('rpslib')
+      var result = RockPaperScissors(responses.first().content)
 
-    var RockPaperScissors = require('rpslib')
-    var result = RockPaperScissors(args.choice)
-
-    msg.reply(result.message
+      msg.reply(result.message
       .replace('beats', '**beats**')
       .replace('loses', '__loses__')
       .replace('ties', '*ties*'))
+    })
   }
 }
