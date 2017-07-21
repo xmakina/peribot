@@ -25,6 +25,17 @@ module.exports = class GetQuoteCommand extends commando.Command {
   }
 
   async run (msg, args) {
+    const responses = await msg.author.awaitMessages(msg2 =>
+      msg2.author.id === msg.author.id &&
+      (msg2.content === 'rock' || msg2.content === 'paper' || msg2.content === 'scissors')
+    , {maxMatches: 1, time: 20e3})
+
+    if (responses.size === 0) {
+      msg.reply('nope')
+    }
+
+    console.log('responses', responses)
+
     var RockPaperScissors = require('rpslib')
     var result = RockPaperScissors(args.choice)
 
