@@ -11,7 +11,7 @@
         memberName: 'rps',
         description: 'Plays Rock/Paper/Scissors',
         details: 'A great way to pick a winner quickly',
-        examples: ['rps paper'],
+        examples: ['rps @johnsmith'],
         args: [
           {
             key: 'opponent',
