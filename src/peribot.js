@@ -69,3 +69,5 @@ client.registry
   .registerCommandsIn(path.join(__dirname, 'commands'))
 
 client.login(token)
+
+client.inhibited = []
