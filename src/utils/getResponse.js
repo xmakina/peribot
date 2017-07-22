@@ -1,16 +1,28 @@
 (function () {
   async function getResponse (msg, prompt, milliseconds, targets, allowOffline) {
-    let allResponses = {responses: [],
+    let allResponses = {
+      responses: [],
       abandon: function () {
         this.responses.map(response => {
           response.blocker(msg, true)
         })
-      }}
+      }
+    }
 
     let check = msg.client.inhibited.every(elem => targets.indexOf(elem.id) > -1)
     if (!check) {
       msg.reply('One of you is already doing something else')
       return null
+    }
+
+    if (allowOffline === false) {
+      let check = targets.every(elem => {
+        return elem.presence.status === 'online'
+      })
+      if (!check) {
+        msg.reply('All recipients must be online')
+        return null
+      }
     }
 
     await Promise.all(targets.map(async target => {
@@ -19,11 +31,13 @@
       var oneBlock = (targetId, dmChannel) => {
         var inhibitor = (privateMessage, abandoned) => {
           if (abandoned) {
-            let index = msg.client.inhibited.indexOf(targetId)
-            msg.client.inhibited.splice(index, 1)
-            msg.client.dispatcher.removeInhibitor(inhibitor)
+            if (msg.client.inhibited.indexOf(targetId) > 0) {
+              let index = msg.client.inhibited.indexOf(targetId)
+              msg.client.inhibited.splice(index, 1)
+              msg.client.dispatcher.removeInhibitor(inhibitor)
 
-            return dmChannel.send('Nevermind then...')
+              return dmChannel.send('Nevermind then...')
+            }
           }
 
           if (privateMessage.author.id === targetId && privateMessage.channel.id === dmChannel.id) {

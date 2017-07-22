@@ -34,7 +34,7 @@
         'Rock, Paper or Scissors?',
         20000,
         [msg.author, args.opponent],
-        true)
+        false)
 
       if (responses === null) {
         return null
