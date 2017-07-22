@@ -69,7 +69,6 @@
       }
 
       var RockPaperScissors = require('rpslib')
-      console.log('challenge, defence', challenge, defence)
       var result = RockPaperScissors(challenge, defence)
 
       return msg.reply(result.message
