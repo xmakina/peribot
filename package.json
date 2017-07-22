@@ -21,7 +21,7 @@
     "standard": "^9.0.0"
   },
   "engines": {
-    "node": "7.6.0"
+    "node": "7.10.1"
   },
   "main": "./src/peribot.js",
   "scripts": {
