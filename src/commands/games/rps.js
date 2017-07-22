@@ -30,12 +30,17 @@
         return null
       }
 
-      let responses = await getResponse(msg,
+      let responses = null
+
+      try {
+        responses = await getResponse(msg,
         'Rock, Paper or Scissors?',
         20000,
         [msg.author, args.opponent],
         false)
-
+      } catch (e) {
+        return msg.reply(e)
+      }
       if (responses === null) {
         return null
       }
