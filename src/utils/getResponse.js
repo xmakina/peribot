@@ -1,46 +1,44 @@
 (function () {
   async function getResponse (msg, prompt, milliseconds, targets, allowOffline) {
-    let allResponses = {responses: [],
+    let allResponses = {
+      responses: [],
       abandon: function () {
         this.responses.map(response => {
           response.blocker(msg, true)
         })
-      }}
+      }
+    }
 
     let check = msg.client.inhibited.every(elem => targets.indexOf(elem.id) > -1)
     if (!check) {
-      msg.reply('One of you is already doing something else')
-      return null
+      throw new Error('one of you is already doing something else')
     }
 
-    await Promise.all(targets.map(async target => {
+    if (allowOffline === false) {
+      let check = targets.every(elem => {
+        return elem.presence.status === 'online'
+      })
+      if (!check) {
+        throw new Error('All recipients must be online')
+      }
+    }
+
+    await Promise.all(targets.map(awaitResponse(msg, allResponses, prompt, milliseconds)))
+
+    return allResponses
+  }
+
+  function awaitResponse (msg, allResponses, prompt, milliseconds) {
+    return async function (target) {
       let dmChannel = await target.createDM()
 
-      var oneBlock = (targetId, dmChannel) => {
-        var inhibitor = (privateMessage, abandoned) => {
-          if (abandoned) {
-            let index = msg.client.inhibited.indexOf(targetId)
-            msg.client.inhibited.splice(index, 1)
-            msg.client.dispatcher.removeInhibitor(inhibitor)
-
-            return dmChannel.send('Nevermind then...')
-          }
-
-          if (privateMessage.author.id === targetId && privateMessage.channel.id === dmChannel.id) {
-            let index = msg.client.inhibited.indexOf(targetId)
-            msg.client.inhibited.splice(index, 1)
-
-            privateMessage.reply('Thanks, check ' + msg.channel.toString() + ' for your results!')
-            msg.client.dispatcher.removeInhibitor(inhibitor)
-            return true
-          }
-        }
-
-        return inhibitor
-      }
-
       msg.client.inhibited.push(target.id)
-      let inhibitor = oneBlock(target.id, dmChannel)
+      let inhibitor = blockNextCommand(target.id,
+        dmChannel,
+        msg.client.inhibited,
+        msg.client.dispatcher,
+        msg.channel.toString())
+
       msg.client.dispatcher.addInhibitor(inhibitor)
 
       dmChannel.send(prompt + '(You have ' + milliseconds / 1000 + ' seconds)')
@@ -54,9 +52,34 @@
       }
 
       allResponses.responses.push({responses: responses, blocker: inhibitor})
-    }))
+    }
+  }
 
-    return allResponses
+  function blockNextCommand (targetId, dmChannel, inhibited, dispatcher, channel) {
+    var inhibitor = (privateMessage, abandoned) => {
+      if (abandoned) {
+        if (inhibited.indexOf(targetId) > -1) {
+          let index = inhibited.indexOf(targetId)
+          inhibited.splice(index, 1)
+          dispatcher.removeInhibitor(inhibitor)
+
+          return dmChannel.send('Nevermind then...')
+        }
+
+        return null
+      }
+
+      if (privateMessage.author.id === targetId && privateMessage.channel.id === dmChannel.id) {
+        let index = inhibited.indexOf(targetId)
+        inhibited.splice(index, 1)
+
+        privateMessage.reply('Thanks, check ' + channel + ' for your results!')
+        dispatcher.removeInhibitor(inhibitor)
+        return true
+      }
+    }
+
+    return inhibitor
   }
 
   module.exports = getResponse
