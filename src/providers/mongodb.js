@@ -8,8 +8,9 @@
     constructor (options = {}) {
       super()
 
-      mongoose.connect(process.env.MONGODB_URI)
+      mongoose.connect(process.env.MONGODB_URI, {useMongoClient: true})
       mongoose.Promise = Promise
+      mongoose.set('debug', true)
 
       this.options = mergeOptions(options, {
         return_buffers: true
@@ -28,7 +29,7 @@
         .set('commandStatusChange', (guild, command, enabled) => this.set(guild, `cmd:${command.name}`, enabled))
         .set('groupStatusChange', (guild, group, enabled) => this.set(guild, `grp:${group.name}`, enabled))
         .set('guildCreate', async guild => {
-          const settings = await this.getAll(guild)
+          const settings = await this.get(guild)
           if (!settings) return
           this.setupGuild(guild.id, settings)
         })
@@ -50,41 +51,57 @@
 
     // Removes all settings in a guild
     async clear (guild) {
-      console.log('clear', guild.id)
-      throw new Error('Not implemented')
+      let guildObj = await this.getGuild(guild)
+      await guildObj.remove()
     }
 
     // Destroys the provider, removing any event listeners
     destroy () {
-      console.log('destroy')
-      throw new Error('Not implemented')
+      for (const [event, listener] of this.listeners) this.client.removeListener(event, listener)
+      this.listeners.clear()
     }
 
     // Obtains a setting for a guild
-    get (guild, key, defValue) {
-      console.log('get', guild.id, key, defValue)
-      throw new Error('Not implemented')
+    async get (guild, key, defValue) {
+      let guildObj = await this.getGuild(guild)
+      if (key === undefined) {
+        return guildObj.settings
+      } else {
+        if (guildObj.settings[key] === undefined) {
+          return defValue
+        }
+
+        return guildObj.settings[key]
+      }
     }
 
     // Removes a setting from a guild
-    remove (guild, key) {
-      console.log('remove', guild.id, key)
-      throw new Error('Not implemented')
+    async remove (guild, key) {
+      if (key === undefined) {
+        return
+      }
+
+      let guildObj = await this.getGuild(guild)
+
+      delete guildObj.settings[key]
+      guildObj.markModified('settings')
+
+      await guildObj.save()
     }
 
     // Sets a setting for a guild
     async set (guild, key, val) {
-      let guildObj = await Guild.findOne({id: guild.id})
-      if (guildObj === null) {
-        guildObj = new Guild({
-          id: guild.id,
-          settings: {}
-        })
-      }
+      let guildObj = await this.getGuild(guild)
 
       guildObj.settings[key.toLowerCase()] = val
+      guildObj.markModified('settings')
 
       return await guildObj.save()
+    }
+
+    async getGuild (guild) {
+      let guildObj = await Guild.findOne({id: this.constructor.getGuildID(guild)})
+      return guildObj
     }
 
     setupGuild (guild, settings) {
@@ -111,7 +128,6 @@
     }
 
     setupGuildGroup (guild, group, settings) {
-      console.log('setupGuildGroup', settings, group.id)
       if (typeof settings[`grp:${group.id}`] === 'undefined') return
       if (guild) {
         if (!guild._groupsEnabled) guild._groupsEnabled = {}
