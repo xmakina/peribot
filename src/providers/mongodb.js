@@ -7,14 +7,17 @@
   class MongoDBProvider extends SettingProvider {
     constructor (options = {}) {
       super()
-
-      mongoose.connect(process.env.MONGODB_URI, {useMongoClient: true})
-      mongoose.Promise = Promise
-      mongoose.set('debug', true)
-
       this.options = mergeOptions(options, {
         return_buffers: true
       })
+
+      if (options.mongoURI === undefined) {
+        throw new Error('mongoURI must be specified')
+      }
+
+      mongoose.connect(options.mongoURI, {useMongoClient: true})
+      mongoose.Promise = Promise
+      mongoose.set('debug', options.mongoDebug || false)
 
       this.listeners = new Map()
     }
