@@ -2,7 +2,7 @@
 const commando = require('discord.js-commando')
 const path = require('path')
 const oneLine = require('common-tags').oneLine
-const sqlite = require('sqlite')
+const MongoDBProvider = require('./providers/mongodb')
 const token = process.env.COMMANDO_AUTH_TOKEN
 
 const client = new commando.Client({
@@ -58,9 +58,10 @@ ${guild ? `in guild ${guild.name} (${guild.id})` : 'globally'}.
 `)
   })
 
-client.setProvider(
-  sqlite.open(path.join(__dirname, 'database.sqlite3')).then(db => new commando.SQLiteProvider(db))
-).catch(console.error)
+client.setProvider(new MongoDBProvider({
+  mongoURI: process.env.MONGODB_URI,
+  mongoDebug: process.env.debug
+})).catch(console.error)
 
 client.registry
   .registerGroup('memes', 'Memes')
