@@ -5,10 +5,33 @@
     playerId: String,
     scores: [{
       gameId: String,
-      discriminator: String,
       score: Number
     }]
   })
+
+  scoreboardSchema.methods.findScore = function (gameId) {
+    let found = this.scores.filter((game) => {
+      return game.gameId === gameId
+    })
+
+    if (found.length === 1) {
+      return found[0]
+    }
+
+    return null
+  }
+
+  scoreboardSchema.methods.findGameIndex = function (gameId) {
+    let found = this.scores.filter((game) => {
+      return game.gameId === gameId
+    })
+
+    if (found.length === 1) {
+      return this.scores.indexOf(found[0])
+    }
+
+    return null
+  }
 
   const Scoreboard = mongoose.model('Scoreboard', scoreboardSchema)
 
@@ -21,21 +44,32 @@
       return Scoreboard.find({'scores.gameId': gameId})
     }
 
-    async setScore (playerId, gameId, discriminator, score) {
-      let scoreboard = await Scoreboard.findOne({playerId, 'scores.gameId': gameId, 'scores.discriminator': discriminator})
-      scoreboard.scores.score = score
-      await scoreboard.save()
+    async addToScore (playerId, gameId, amount) {
+      let player = await this.getPlayer(playerId)
+      if (player === null) {
+        return await this.updateScore(playerId, gameId, amount)
+      }
+      let index = player.findGameIndex(gameId)
+      player.scores[index].score += amount
+
+      await player.save()
     }
 
-    async updateScore (playerId, gameId, discriminator, score) {
-      let scoreboard = await Scoreboard.findOne({playerId, 'scores.gameId': gameId, 'scores.discriminator': discriminator})
+    async setScore (playerId, gameId, score) {
+      let player = await this.getPlayer(playerId)
+      let index = player.findGameIndex(gameId)
+      player.scores[index].score = score
+      await player.save()
+    }
+
+    async updateScore (playerId, gameId, score) {
+      let scoreboard = await Scoreboard.findOne({playerId})
 
       if (scoreboard === null) {
         scoreboard = new Scoreboard({
           playerId,
           scores: [{
             gameId,
-            discriminator,
             score
           }]
         })

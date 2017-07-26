@@ -1,5 +1,6 @@
 (function () {
   const commando = require('discord.js-commando')
+  const Scoreboards = require('../../utils/scoreboards')
 
   module.exports = class GetScoreboardCommand extends commando.Command {
     constructor (client) {
@@ -15,6 +16,7 @@
           {
             key: 'player',
             label: 'player',
+            default: 'self',
             prompt: 'Who\'s score do you want to see?',
             type: 'user',
             infinite: false
@@ -24,16 +26,27 @@
     }
 
     async run (msg, args) {
-      const Scoreboards = require('../../utils/scoreboards')
-      const playerDetails = await Scoreboards.getPlayer(args.player.id)
+      let target = args.player === 'self' ? msg.author : args.player
+      const playerDetails = await Scoreboards.getPlayer(target.id)
 
-      let message = 'your best scores are:'
+      if (playerDetails === null) {
+        if (target === msg.author) {
+          return msg.reply(`you haven't got any best scores yet`)
+        }
+        return msg.reply(`no scores found for ${target}`)
+      }
+
+      let message = `the best scores for ${target} are: `
+      if (target === msg.author) {
+        message = 'your best scores are:'
+      }
+
       for (var i = 0; i < playerDetails.scores.length; i++) {
         const score = playerDetails.scores[i]
         message += `\n${score.gameId}: ${score.score}`
       }
 
-      msg.reply(message)
+      return msg.reply(message)
     }
   }
 })()

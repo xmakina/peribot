@@ -1,6 +1,8 @@
 (function () {
   const getResponse = require('../../utils/getResponse.js')
+  const Scoreboards = require('../../utils/scoreboards')
   const commando = require('discord.js-commando')
+  const RockPaperScissors = require('rpslib')
 
   module.exports = class PlayRockPaperScissorsCommand extends commando.Command {
     constructor (client) {
@@ -41,6 +43,7 @@
       } catch (e) {
         return msg.reply(e)
       }
+
       if (responses === null) {
         return null
       }
@@ -73,8 +76,8 @@
         challenge = second.content
       }
 
-      var RockPaperScissors = require('rpslib')
       var result = RockPaperScissors(challenge, defence)
+      await Scoreboards.addToScore(msg.author.id, 'rps', result.score)
 
       return msg.reply(result.message
       .replace('my', args.opponent.toString() + '\'s')
