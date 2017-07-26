@@ -2,7 +2,7 @@
   const getResponse = require('../../utils/getResponse.js')
   const commando = require('discord.js-commando')
 
-  module.exports = class GetQuoteCommand extends commando.Command {
+  module.exports = class PlayRockPaperScissorsCommand extends commando.Command {
     constructor (client) {
       super(client, {
         name: 'rock-paper-scissors',
