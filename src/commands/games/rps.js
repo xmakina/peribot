@@ -77,7 +77,7 @@
       }
 
       var result = RockPaperScissors(challenge, defence)
-      await Scoreboards.addToScore(msg.author.id, 'rps', result.score)
+      await Scoreboards.addToScore(msg.author.id, 'rock-paper-scissors', result.score)
 
       return msg.reply(result.message
       .replace('my', args.opponent.toString() + '\'s')

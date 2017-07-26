@@ -6,7 +6,7 @@
   class MongoDBProvider extends SettingProvider {
     constructor (options = {}) {
       super()
-      
+
       if (options.mongoURI === undefined) {
         throw new Error('mongoURI must be specified')
       }
