@@ -60,7 +60,7 @@ ${guild ? `in guild ${guild.name} (${guild.id})` : 'globally'}.
 
 client.setProvider(new MongoDBProvider({
   mongoURI: process.env.MONGODB_URI,
-  mongoDebug: process.env.debug
+  mongoDebug: process.env.DEBUG
 })).catch(console.error)
 
 client.registry
