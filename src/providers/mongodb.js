@@ -95,7 +95,7 @@
       guildObj.settings[key.toLowerCase()] = val
       guildObj.markModified('settings')
 
-      return await guildObj.save()
+      await guildObj.save()
     }
 
     async getGuild (guild) {
