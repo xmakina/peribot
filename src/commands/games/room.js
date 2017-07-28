@@ -1,6 +1,6 @@
 (function () {
   const commando = require('discord.js-commando')
-  const createGameRoom = require('../../utils/createGameRoom')
+  const {createGameRoom} = require('../../discord.js-game-rooms/createGameRoom')
   module.exports = class CreateRoomCommand extends commando.Command {
     constructor (client) {
       super(client, {
@@ -20,7 +20,7 @@
         return reaction.emoji.name === '👍'
       }, {maxUsers: 1, time: 10000})
 
-      let room = await createGameRoom(msg, reactions, 'testroom')
+      let room = await createGameRoom(msg, reactions, 'testroom', '../discord.js-game-rooms/test-game')
       return msg.reply(`See you in ${room.toString()}!`)
     }
   }

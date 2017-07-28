@@ -72,3 +72,4 @@ client.registry
 client.login(token)
 
 client.inhibited = []
+client.gamerooms = {}
