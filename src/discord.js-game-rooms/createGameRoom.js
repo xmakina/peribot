@@ -2,10 +2,19 @@
   module.exports = {
     createGameRoom,
     setupRoom,
-    deleteGameRoom
+    deleteGameRoom,
+    init
   }
 
   const discordjs = require('discord.js')
+  const Room = require('./room')
+
+  async function init (client) {
+    let rooms = await Room.find({})
+    rooms.map((room) => {
+      setupRoom(room.id, room.require, client)
+    })
+  }
 
   async function createGameRoom (msg, responses, name, require) {
     // give all players access
@@ -34,9 +43,15 @@
     let discriminator = Math.floor(Math.random() * 1000)
 
     // create a room
-    let room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
+    const room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
 
     setupRoom(room.id, require, msg.client)
+    const roomObj = new Room({
+      id: room.id,
+      require: require
+    })
+
+    roomObj.save().catch((e) => { throw e })
 
     return room
   }
@@ -53,6 +68,8 @@
 
     client.gamerooms[roomId] = inhibitor
     client.dispatcher.addInhibitor(inhibitor)
+
+    console.log('gameroom: roomId', roomId)
   }
 
   function deleteGameRoom (msg, roomId) {

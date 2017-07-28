@@ -4,6 +4,7 @@ const path = require('path')
 const oneLine = require('common-tags').oneLine
 const MongoDBProvider = require('./providers/mongodb')
 const token = process.env.COMMANDO_AUTH_TOKEN
+const gameRooms = require('./discord.js-game-rooms/createGameRoom')
 
 const client = new commando.Client({
   owner: process.env.COMMANDO_OWNER_ID,
@@ -20,6 +21,7 @@ client
   .on('debug', console.log)
   .on('ready', () => {
     console.log(`Client ready; logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
+    gameRooms.init(client)
   })
   .on('disconnect', () => {
     console.warn('Disconnected!')
