@@ -18,13 +18,35 @@
   }
 
   async function invitePlayers (msg, game) {
-    let prompt = await msg.channel.send(`Who wants in? React with 👍`)
+    let details = require(`../room-games/${game}`).details
+    if (details === null || details === undefined) {
+      details = {
+        intro: 'Who wants in?'
+      }
+    }
+
+    let prompt = await msg.channel.send(`${details.invite}\nReact with 👍 to join this game.`)
     let reactions = await prompt.awaitReactions((reaction) => {
       return reaction.emoji.name === '👍'
-    }, {maxUsers: 1, time: 10000})
+    }, {maxUsers: details.players.max, time: 10000})
+
+    const users = reactions.first().users.array()
+    if (users.length < details.players.min) {
+      return msg.reply(`${game} requires at least ${details.players.min} players, sorry`)
+    }
+
+    let message = ''
+    let reactionArray = reactions.array()
+    console.log('reactionArray', reactionArray)
+    for (let i = 0; i < users.length; i++) {
+      message += users[i].toString()
+      if (i < users.length - 1) {
+        message += ', '
+      }
+    }
 
     let room = await createGameRoom(msg, reactions, 'testroom', `../room-games/${game}`)
-    return msg.reply(`See you in ${room.toString()}!`)
+    return msg.channel.send(`${message}: your game is ready for you in ${room.toString()}`)
   }
 
   async function createGameRoom (msg, responses, name, require) {
@@ -83,7 +105,7 @@
           }
 
           try {
-            let result = require(gameRequire)(content, room.gameState)
+            let result = require(gameRequire).run(content, room.gameState)
             if (result === false) {
               return deleteGameRoom(roomId, message.client, message.guild)
             }

@@ -1,7 +1,20 @@
 (function () {
-  module.exports = runGame
+  const details = {
+    players: {
+      min: 1,
+      max: 4,
+      recommended: 2
+    },
+    title: 'Test Game',
+    description: 'Play a game for fun!',
+    invite: 'Would you like to play a game?',
+    intro: 'Type quit to quit!',
+    rules: 'none'
+  }
 
-  function runGame (content, gameState) {
+  module.exports = {run, details}
+
+  function run (content, gameState) {
     if (gameState.count === undefined) {
       gameState.count = 0
     }
