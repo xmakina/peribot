@@ -45,7 +45,7 @@
     // create a room
     const room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
 
-    setupRoom(room.id, require, msg.client)
+    setupRoom(room.id, require, msg.client, true)
     const roomObj = new Room({
       id: room.id,
       require: require,
@@ -57,7 +57,7 @@
     return room
   }
 
-  function setupRoom (roomId, gameRequire, client) {
+  function setupRoom (roomId, gameRequire, client, first = false) {
     if (!client.channels.has(roomId)) {
       return deleteGameRoom(roomId, client)
     }
@@ -95,8 +95,11 @@
 
     client.gamerooms[roomId] = inhibitor
     client.dispatcher.addInhibitor(inhibitor)
-
-    client.channels.get(roomId).send('Please, continue...')
+    if (first) {
+      client.channels.get(roomId).send('Welcome! All commands sent to me in this channel will be sent to the game. Have fun!')
+    } else {
+      client.channels.get(roomId).send('Please, continue...')
+    }
 
     console.log('gameroom: roomId', roomId)
   }
