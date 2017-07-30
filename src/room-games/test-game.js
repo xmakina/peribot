@@ -8,17 +8,40 @@
     title: 'Test Game',
     description: 'Play a game for fun!',
     invite: 'Would you like to play a game?',
-    intro: 'Type quit to quit!',
+    intro: 'Type Start to get started!',
     rules: 'none'
   }
 
-  module.exports = {run, details}
+  module.exports = {run, details, init}
 
-  function run (content, gameState) {
+  function init (players) {
+    return {
+      players
+    }
+  }
+
+  function run (playerId, content, gameState) {
     if (gameState.count === undefined) {
       gameState.count = 0
     }
+
+    if (gameState.currentPlayer === undefined) {
+      gameState.currentPlayer = Math.floor(Math.random() * gameState.players.length)
+      return {
+        message: `${gameState.players[gameState.currentPlayer]} is the start player`,
+        gameState
+      }
+    }
+
     console.log(`your game is running ${gameState.count}`)
+
+    if (playerId !== gameState.players[gameState.currentPlayer]) {
+      return {
+        message: `${playerId}, it's not your turn yet`,
+        gameState
+      }
+    }
+
     if (content === 'quit') {
       return false
     }
@@ -37,8 +60,13 @@
 
     gameState.count++
 
+    gameState.currentPlayer++
+    if (gameState.currentPlayer >= gameState.players.length) {
+      gameState.currentPlayer = 0
+    }
+
     return {
-      message: `the game is running: ${content}. The game has run ${gameState.count} times`,
+      message: `the game is running: ${content}. The game has run ${gameState.count} times. It's ${gameState.players[gameState.currentPlayer]} turn.`,
       gameState
     }
   }

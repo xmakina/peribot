@@ -49,9 +49,10 @@
     return msg.channel.send(`${message}: your game is ready for you in ${room.toString()}`)
   }
 
-  async function createGameRoom (msg, responses, name, require) {
+  async function createGameRoom (msg, responses, name, requirePath) {
     // give all players access
     let overwrites = []
+    let players = []
     let readwrite = new discordjs.Permissions(['READ_MESSAGES', 'SEND_MESSAGES']).bitfield
     responses.first().users.map((user) => {
       overwrites.push({
@@ -59,6 +60,7 @@
         type: 'member',
         allow: readwrite
       })
+      players.push(user.toString())
     })
 
     overwrites.push({
@@ -77,13 +79,14 @@
 
     // create a room
     try {
+      let init = require(requirePath).init(players)
       const room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
 
-      setupRoom(room.id, require, msg.client, true)
+      setupRoom(room.id, requirePath, msg.client, true)
       const roomObj = new Room({
         id: room.id,
-        require: require,
-        gameState: {}
+        require: requirePath,
+        gameState: init
       })
 
       roomObj.save().catch((e) => { throw e })
@@ -105,7 +108,7 @@
           }
 
           try {
-            let result = require(gameRequire).run(content, room.gameState)
+            let result = require(gameRequire).run(message.author.toString(), content, room.gameState)
             if (result === false) {
               return deleteGameRoom(roomId, message.client, message.guild)
             }
@@ -144,7 +147,8 @@
     client.gamerooms[roomId] = inhibitor
     client.dispatcher.addInhibitor(inhibitor)
     if (first) {
-      client.channels.get(roomId).send('Welcome! All commands sent to me in this channel will be sent to the game. Have fun!')
+      const intro = require(gameRequire).details.intro
+      client.channels.get(roomId).send(`Welcome! All commands sent to me in this channel will be sent to the game. Have fun!\n${intro}`)
     } else {
       client.channels.get(roomId).send('Please, continue...')
     }

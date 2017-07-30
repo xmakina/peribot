@@ -12,9 +12,16 @@
     rules: 'http://www.google.com/?q=you%20do%20it'
   }
 
-  module.exports = {run, details}
+  module.exports = {run, details, init}
 
-  function run (content, gameState) {
+  function init (players) {
+    return {
+      players,
+      currentPlayer: 0
+    }
+  }
+
+  function run (playerId, content, gameState) {
     if (gameState.statistics === undefined) {
       gameState.statistics = {runAmount: 0}
     }
