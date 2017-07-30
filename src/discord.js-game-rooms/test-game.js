@@ -15,7 +15,7 @@
     }
 
     if (content === 'error') {
-      throw new Error('error')
+      throw new Error('An error was summoned!')
     }
 
     if (content === 'null') {

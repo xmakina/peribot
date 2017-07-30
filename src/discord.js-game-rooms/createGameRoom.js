@@ -43,27 +43,26 @@
     let discriminator = Math.floor(Math.random() * 1000)
 
     // create a room
-    const room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
+    try {
+      const room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
 
-    setupRoom(room.id, require, msg.client, true)
-    const roomObj = new Room({
-      id: room.id,
-      require: require,
-      gameState: {}
-    })
+      setupRoom(room.id, require, msg.client, true)
+      const roomObj = new Room({
+        id: room.id,
+        require: require,
+        gameState: {}
+      })
 
-    roomObj.save().catch((e) => { throw e })
+      roomObj.save().catch((e) => { throw e })
 
-    return room
+      return room
+    } catch (err) {
+      throw err
+    }
   }
 
-  function setupRoom (roomId, gameRequire, client, first = false) {
-    if (!client.channels.has(roomId)) {
-      return deleteGameRoom(roomId, client)
-    }
-
-    // inhibit commands in this room
-    let inhibitor = function (message) {
+  function createGameRoomInhibitor (roomId, gameRequire) {
+    return (message) => {
       if (message.channel.id === roomId) {
         const prefix = message.guild ? message.guild.commandPrefix : this.client.commandPrefix
         const content = message.content.substring(prefix.length).trim()
@@ -72,19 +71,27 @@
           if (room.gameState === undefined || room.gameState === null) {
             room.gameState = {}
           }
-          let result = require(gameRequire)(content, room.gameState)
 
-          if (result === false) {
-            return deleteGameRoom(roomId, client, message.guild)
+          try {
+            let result = require(gameRequire)(content, room.gameState)
+            if (result === false) {
+              return deleteGameRoom(roomId, this.client, message.guild)
+            }
+
+            if (result === null || result === undefined || result.gameState === null || result.gameState === undefined) {
+              throw new Error('The game state was not returned')
+            }
+
+            room.gameState = result.gameState
+            room.markModified('gameState')
+            room.save().catch((err) => { throw err })
+
+            return message.say(result.message)
+          } catch (err) {
+            throw err
           }
-
-          room.gameState = result.gameState
-          room.markModified('gameState')
-          await room.save().catch((err) => { message.say(`ERROR SAVING THE GAME: ${err}`) })
-
-          message.say(result.message)
-        }).catch((e) => {
-          throw e
+        }).catch((err) => {
+          return message.say(err)
         })
 
         return true
@@ -92,6 +99,15 @@
 
       return false
     }
+  }
+
+  function setupRoom (roomId, gameRequire, client, first = false) {
+    if (!client.channels.has(roomId)) {
+      return deleteGameRoom(roomId, client)
+    }
+
+    // inhibit commands in this room
+    let inhibitor = createGameRoomInhibitor(roomId, gameRequire)
 
     client.gamerooms[roomId] = inhibitor
     client.dispatcher.addInhibitor(inhibitor)
