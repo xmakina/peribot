@@ -48,7 +48,8 @@
     setupRoom(room.id, require, msg.client)
     const roomObj = new Room({
       id: room.id,
-      require: require
+      require: require,
+      gameState: {}
     })
 
     roomObj.save().catch((e) => { throw e })
@@ -57,27 +58,73 @@
   }
 
   function setupRoom (roomId, gameRequire, client) {
+    if (!client.channels.has(roomId)) {
+      return deleteGameRoom(roomId, client)
+    }
+
     // inhibit commands in this room
-    let inhibitor = function (msg) {
-      if (msg.channel.id === roomId) {
-        console.log('inhibiting for room ' + roomId)
-        require(gameRequire)(msg)
-        return `inhibiting for room ${roomId}`
+    let inhibitor = function (message) {
+      if (message.channel.id === roomId) {
+        const prefix = message.guild ? message.guild.commandPrefix : this.client.commandPrefix
+        const content = message.content.substring(prefix.length).trim()
+
+        Room.findOne({id: roomId}).then(async (room) => {
+          if (room.gameState === undefined || room.gameState === null) {
+            room.gameState = {}
+          }
+          let result = require(gameRequire)(content, room.gameState)
+
+          if (result === false) {
+            return deleteGameRoom(roomId, client, message.guild)
+          }
+
+          room.gameState = result.gameState
+          room.markModified('gameState')
+          await room.save().catch((err) => { message.say(`ERROR SAVING THE GAME: ${err}`) })
+
+          message.say(result.message)
+        }).catch((e) => {
+          throw e
+        })
+
+        return true
       }
+
+      return false
     }
 
     client.gamerooms[roomId] = inhibitor
     client.dispatcher.addInhibitor(inhibitor)
 
+    client.channels.get(roomId).send('Please, continue...')
+
     console.log('gameroom: roomId', roomId)
   }
 
-  function deleteGameRoom (msg, roomId) {
-    let inhibitor = msg.client.gamerooms[roomId]
-    msg.client.dispatcher.removeInhibitor(inhibitor)
-    delete msg.client.gamerooms[roomId]
-    let room = msg.guild.channels.get(roomId)
-    room.delete()
-    console.log('closed room', roomId)
+  function deleteGameRoom (roomId, client, guild) {
+    let inhibitor = client.gamerooms[roomId]
+    if (typeof inhibitor === 'function') {
+      client.dispatcher.removeInhibitor(inhibitor)
+    }
+
+    delete client.gamerooms[roomId]
+    if (guild) {
+      let room = guild.channels.get(roomId)
+      room.send('Thanks for playing, the room will be deleted in 10 seconds')
+    }
+    setTimeout(() => {
+      Room.findOneAndRemove({id: roomId}).then((err) => {
+        if (guild) {
+          let room = guild.channels.get(roomId)
+          room.delete()
+        }
+
+        if (err) {
+          console.error(err)
+        }
+
+        console.log('closed room', roomId)
+      })
+    }, 10000)
   }
 })()
