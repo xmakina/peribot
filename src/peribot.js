@@ -4,7 +4,7 @@ const path = require('path')
 const oneLine = require('common-tags').oneLine
 const MongoDBProvider = require('./providers/mongodb')
 const token = process.env.COMMANDO_AUTH_TOKEN
-const gameRooms = require('./discord.js-game-rooms/createGameRoom')
+const gameRooms = require('./utils/gameRooms')
 
 const client = new commando.Client({
   owner: process.env.COMMANDO_OWNER_ID,

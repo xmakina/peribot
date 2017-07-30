@@ -3,17 +3,28 @@
     createGameRoom,
     setupRoom,
     deleteGameRoom,
-    init
+    init,
+    invitePlayers
   }
 
   const discordjs = require('discord.js')
-  const Room = require('./room')
+  const Room = require('../models/room')
 
   async function init (client) {
     let rooms = await Room.find({})
     rooms.map((room) => {
       setupRoom(room.id, room.require, client)
     })
+  }
+
+  async function invitePlayers (msg, game) {
+    let prompt = await msg.channel.send(`Who wants in? React with 👍`)
+    let reactions = await prompt.awaitReactions((reaction) => {
+      return reaction.emoji.name === '👍'
+    }, {maxUsers: 1, time: 10000})
+
+    let room = await createGameRoom(msg, reactions, 'testroom', `../room-games/${game}`)
+    return msg.reply(`See you in ${room.toString()}!`)
   }
 
   async function createGameRoom (msg, responses, name, require) {
@@ -66,7 +77,6 @@
       if (message.channel.id === roomId) {
         const prefix = message.guild ? message.guild.commandPrefix : this.client.commandPrefix
         const content = message.content.substring(prefix.length).trim()
-
         Room.findOne({id: roomId}).then(async (room) => {
           if (room.gameState === undefined || room.gameState === null) {
             room.gameState = {}
@@ -75,7 +85,7 @@
           try {
             let result = require(gameRequire)(content, room.gameState)
             if (result === false) {
-              return deleteGameRoom(roomId, this.client, message.guild)
+              return deleteGameRoom(roomId, message.client, message.guild)
             }
 
             if (result === null || result === undefined || result.gameState === null || result.gameState === undefined) {
@@ -91,7 +101,7 @@
             throw err
           }
         }).catch((err) => {
-          return message.say(err)
+          return message.say(`${err} : ${err.stack}`)
         })
 
         return true
