@@ -32,11 +32,7 @@
       return reaction.emoji.name === joinReact
     }, {maxUsers: details.players.max + 1, time: 10000})
 
-    const users = reactions.first()
-      .users
-      .filter((u) => {
-        return u.id !== msg.client.user.id
-      }).array()
+    const users = reactions.first().users.filter((u) => { return u.id !== msg.client.user.id }).array()
     if (users.length < details.players.min) {
       return msg.reply(`${game} requires at least ${details.players.min} players, sorry`)
     }
@@ -50,16 +46,16 @@
       }
     }
 
-    let room = await createGameRoom(msg, reactions, 'testroom', `../room-games/${game}`)
+    let room = await createGameRoom(msg, users, 'testroom', `../room-games/${game}`)
     return msg.channel.send(`${message}: your game is ready for you in ${room.toString()}`)
   }
 
-  async function createGameRoom (msg, responses, name, requirePath) {
+  async function createGameRoom (msg, users, name, requirePath) {
     // give all players access
     let overwrites = []
     let players = []
     let readwrite = new discordjs.Permissions(['READ_MESSAGES', 'SEND_MESSAGES']).bitfield
-    responses.first().users.map((user) => {
+    users.map((user) => {
       overwrites.push({
         id: user.id,
         type: 'member',
@@ -84,14 +80,21 @@
 
     // create a room
     try {
-      let init = require(requirePath).init(players)
-      const room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
+      let game = require(requirePath)
 
+      if (game === undefined || game === null) {
+        throw new Error(`Game ${requirePath} not found!`)
+      }
+
+      const room = await msg.guild.createChannel(`${name}-${discriminator}`, 'text', overwrites)
+      let init = game.init(players)
+      room.send(`Welcome! All commands sent to me in this channel will be sent to the game. Have fun!\n${game.intro}`)
+      room.send(init.message)
       setupRoom(room.id, requirePath, msg.client, true)
       const roomObj = new Room({
         id: room.id,
         require: requirePath,
-        gameState: init
+        gameState: init.gameState
       })
 
       roomObj.save().catch((e) => { throw e })
@@ -131,7 +134,7 @@
             throw err
           }
         }).catch((err) => {
-          return message.say(`${err} : ${err.stack}`)
+          return message.say(`\`\`\`${err.stack}\`\`\`\n\nPlease report this to an admin. (Room ID: ${roomId})`)
         })
 
         return true
@@ -151,10 +154,7 @@
 
     client.gamerooms[roomId] = inhibitor
     client.dispatcher.addInhibitor(inhibitor)
-    if (first) {
-      const intro = require(gameRequire).details.intro
-      client.channels.get(roomId).send(`Welcome! All commands sent to me in this channel will be sent to the game. Have fun!\n${intro}`)
-    } else {
+    if (!first) {
       client.channels.get(roomId).send('Please, continue...')
     }
 

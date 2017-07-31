@@ -15,22 +15,20 @@
   module.exports = {run, details, init}
 
   function init (players) {
-    return {
+    let gameState = {
       players
+    }
+
+    gameState.currentPlayer = Math.floor(Math.random() * gameState.players.length)
+    return {
+      message: `${gameState.players[gameState.currentPlayer]} is the start player`,
+      gameState
     }
   }
 
   function run (playerId, content, gameState) {
     if (gameState.count === undefined) {
       gameState.count = 0
-    }
-
-    if (gameState.currentPlayer === undefined) {
-      gameState.currentPlayer = Math.floor(Math.random() * gameState.players.length)
-      return {
-        message: `${gameState.players[gameState.currentPlayer]} is the start player`,
-        gameState
-      }
     }
 
     console.log(`your game is running ${gameState.count}`)
