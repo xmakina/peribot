@@ -9,6 +9,7 @@
 
   const discordjs = require('discord.js')
   const Room = require('../models/room')
+  const joinReact = '👍'
 
   async function init (client) {
     let rooms = await Room.find({})
@@ -25,19 +26,23 @@
       }
     }
 
-    let prompt = await msg.channel.send(`${details.invite}\nReact with 👍 to join this game.`)
+    let prompt = await msg.channel.send(`${details.invite}\nReact with ${joinReact} to join this game.`)
+    prompt.react(joinReact)
     let reactions = await prompt.awaitReactions((reaction) => {
-      return reaction.emoji.name === '👍'
-    }, {maxUsers: details.players.max, time: 10000})
+      return reaction.emoji.name === joinReact
+    }, {maxUsers: details.players.max + 1, time: 10000})
 
-    const users = reactions.first().users.array()
+    const users = reactions.first()
+      .users
+      .filter((u) => {
+        return u.id !== msg.client.user.id
+      }).array()
     if (users.length < details.players.min) {
       return msg.reply(`${game} requires at least ${details.players.min} players, sorry`)
     }
 
     let message = ''
-    let reactionArray = reactions.array()
-    console.log('reactionArray', reactionArray)
+
     for (let i = 0; i < users.length; i++) {
       message += users[i].toString()
       if (i < users.length - 1) {
