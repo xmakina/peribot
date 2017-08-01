@@ -1,6 +1,5 @@
 (function () {
   const commando = require('discord.js-commando')
-  const {invitePlayers} = require('discord.js-gamerooms')
   const gamesList = require('../../room-games/list')
   module.exports = class GameRoomCommand extends commando.Command {
     constructor (client) {
@@ -22,6 +21,8 @@
           }],
         guildOnly: true
       })
+
+      this.gameRooms = client.gameRooms
     }
 
     async run (msg, args) {
@@ -31,9 +32,9 @@
 
       try {
         require(args.game)
-        return invitePlayers(msg, args.game)
+        return this.gameRooms.invitePlayers(msg, args.game)
       } catch (err) {
-        return invitePlayers(msg, `../../../src/room-games/${args.game}`)
+        return this.gameRooms.invitePlayers(msg, `../../../src/room-games/${args.game}`)
       }
     }
   }
