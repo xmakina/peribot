@@ -1,6 +1,6 @@
 (function () {
   const commando = require('discord.js-commando')
-  const {invitePlayers} = require('../../utils/gameRooms')
+  const {invitePlayers} = require('discord.js-gamerooms')
   const gamesList = require('../../room-games/list')
   module.exports = class GameRoomCommand extends commando.Command {
     constructor (client) {
@@ -29,7 +29,7 @@
         return msg.reply('I don\'t know that one')
       }
 
-      return invitePlayers(msg, args.game)
+      return invitePlayers(msg, `../../../src/room-games/${args.game}`)
     }
   }
 })()
