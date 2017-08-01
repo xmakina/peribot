@@ -29,7 +29,12 @@
         return msg.reply('I don\'t know that one')
       }
 
-      return invitePlayers(msg, `../../../src/room-games/${args.game}`)
+      try {
+        require(args.game)
+        return invitePlayers(msg, args.game)
+      } catch (err) {
+        return invitePlayers(msg, `../../../src/room-games/${args.game}`)
+      }
     }
   }
 })()
