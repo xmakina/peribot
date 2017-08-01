@@ -3,11 +3,18 @@ const commando = require('discord.js-commando')
 const path = require('path')
 const oneLine = require('common-tags').oneLine
 const MongoDBProvider = require('./providers/mongodb')
-const token = process.env.COMMANDO_AUTH_TOKEN
+const mongoose = require('mongoose')
+const GameRooms = require('discord.js-gamerooms')
 
+const token = process.env.COMMANDO_AUTH_TOKEN
 const client = new commando.Client({
   owner: process.env.COMMANDO_OWNER_ID,
   commandPrefix: process.env.COMMANDO_CMD_PREFIX
+})
+
+client.gameRooms = new GameRooms({
+  client,
+  mongoose
 })
 
 client.logger = console
@@ -20,6 +27,7 @@ client
   .on('debug', console.log)
   .on('ready', () => {
     console.log(`Client ready; logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
+    client.gameRooms.init(client)
   })
   .on('disconnect', () => {
     console.warn('Disconnected!')
@@ -61,7 +69,8 @@ ${guild ? `in guild ${guild.name} (${guild.id})` : 'globally'}.
 client.setProvider(new MongoDBProvider({
   mongoURI: process.env.MONGODB_URI,
   mongoDebug: process.env.DEBUG
-})).catch(console.error)
+}))
+  .catch(console.error)
 
 client.registry
   .registerGroup('memes', 'Memes')
@@ -72,3 +81,4 @@ client.registry
 client.login(token)
 
 client.inhibited = []
+client.gamerooms = {}

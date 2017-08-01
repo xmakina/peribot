@@ -22,7 +22,8 @@
             type: 'user',
             infinite: false
           }
-        ]
+        ],
+        guildOnly: true
       })
     }
 
