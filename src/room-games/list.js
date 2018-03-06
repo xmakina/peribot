@@ -1,3 +1,3 @@
 (function () {
-  module.exports = ['other-game', 'test-game']
+  module.exports = ['other-game', 'test-game', 'cthulhu-dice']
 })()
