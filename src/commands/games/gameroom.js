@@ -5,7 +5,7 @@
     constructor (client) {
       super(client, {
         name: 'gameroom',
-        aliases: ['gr'],
+        aliases: ['gr', 'play'],
         group: 'games',
         memberName: 'gameroom',
         description: 'Creates a game room',
